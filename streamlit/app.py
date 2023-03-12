@@ -9,7 +9,7 @@ file_path = "./streamlit/models/xgb_reg.pkl"
 # xgb_model_loaded = pickle.load(open(file_path, "rb"))
 
 with open(file_path, "rb") as f:
-    xgboost = pickle.load(f)
+    model = pickle.load(f)
 
 features = [
     "property_tax_rate",
@@ -187,4 +187,4 @@ features_col = [
 for col in features_col:
     df[col] = 1
 
-st.write(f"Your house price: ${np.exp(xgboost.predict(df)[0])}")
+st.write(f"Your house price: ${np.exp(model.predict(df)[0])}")
