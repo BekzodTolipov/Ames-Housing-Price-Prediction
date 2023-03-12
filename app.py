@@ -186,4 +186,4 @@ features_col = [
 for col in features_col:
     df[col] = 1
 
-st.write(f"Your house price: ${np.exp(model.predict(df)[0])}")
+st.write(f"Your house guesstimated price: ${round(np.exp(model.predict(df)[0]), 2)}")
