@@ -1,5 +1,5 @@
 numpy
+xgboost
+sklearn
 pandas
-sklearn==0.0
-xgboost==1.6.1
 matplotlib
