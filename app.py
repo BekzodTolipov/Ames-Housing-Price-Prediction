@@ -2,11 +2,10 @@ import pickle
 
 import numpy as np
 import pandas as pd
+import streamlit as st
 import xgboost
 
-import streamlit as st
-
-file_path = "./streamlit/models/xgb_reg.pkl"
+file_path = "./models/xgb_reg.pkl"
 # xgb_model_loaded = pickle.load(open(file_path, "rb"))
 
 with open(file_path, "rb") as f:
