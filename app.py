@@ -3,7 +3,6 @@ import pickle
 import numpy as np
 import pandas as pd
 import streamlit as st
-import xgboost
 
 file_path = "./models/xgb_reg.pkl"
 # xgb_model_loaded = pickle.load(open(file_path, "rb"))
