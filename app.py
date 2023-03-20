@@ -1,23 +1,122 @@
+import datetime
 import pickle
 
+import geopy.distance
+import matplotlib.pyplot as plt
+import mpld3
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import streamlit as st
+import streamlit.components.v1 as components
+from geopy.geocoders import Nominatim
 
-file_path = "./models/xgb_reg.pkl"
-# xgb_model_loaded = pickle.load(open(file_path, "rb"))
 
+def cal_distance_miles(lat, long, coords_2):
+    """Uses python geopy library to calculate distance between 2 coordinates
+
+    Args:
+        lat (float): latitude of given coordinate
+        long (float): longitude of given coordinate
+
+    Returns:
+        _type_: distance between 2 coordinates
+    """
+    house_coords = (lat, long)
+    return round(geopy.distance.geodesic(house_coords, coords_2).miles, 2)
+
+
+def airport_distance(lat, long):
+    austin_airport_coords = (30.1975, -97.6663058)
+    return cal_distance_miles(lat, long, austin_airport_coords)
+
+
+def downtown_distance(lat, long):
+    austin_airport_coords = (30.266666, -97.733330)
+    return cal_distance_miles(lat, long, austin_airport_coords)
+
+
+# GRAPHS BELOW
+austin_df = pd.read_csv("./data/austin_housing_data.csv")
+
+
+feature_one = st.selectbox(
+    "Select Feature 1",
+    (x for x in austin_df.columns.tolist()),
+)
+
+max_val_one = round(austin_df[feature_one].max())
+min_val_one = round(austin_df[feature_one].min())
+
+house_p_min, house_p_max = st.slider(
+    f"{feature_one}", min_val_one, max_val_one, (min_val_one, max_val_one), step=10_000
+)
+
+austin_df = austin_df[
+    (austin_df[feature_one] > house_p_min) & (austin_df[feature_one] < house_p_max)
+]
+
+feature_two = st.selectbox(
+    "Select Feature 2",
+    (x for x in austin_df.columns.tolist()),
+)
+
+max_val_two = round(austin_df[feature_two].max())
+min_val_two = round(austin_df[feature_two].min())
+
+house_p_min, house_p_max = st.slider(
+    f"{feature_two}", min_val_two, max_val_two, (min_val_two, max_val_two), step=10_000
+)
+
+austin_df = austin_df[
+    (austin_df[feature_two] > house_p_min) & (austin_df[feature_two] < house_p_max)
+]
+
+graph = st.selectbox("Select Graph", ("Distribution", "Scatterplot", "Boxplot"))
+
+if graph == "Distribution":
+    fig = plt.figure()
+    plt.hist(austin_df[feature_one])
+    fig_html = mpld3.fig_to_html(fig)
+    components.html(fig_html, height=600)
+elif graph == "Scatterplot":
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+
+    ax.scatter(
+        austin_df[feature_one],
+        austin_df[feature_two],
+    )
+
+    ax.set_xlabel(feature_one)
+    ax.set_ylabel(feature_two)
+
+    st.write(fig)
+elif graph == "Boxplot":
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax = sns.boxplot(ax=ax, y=austin_df[feature_one], x=austin_df[feature_two])
+
+    ax.set_ylabel(feature_one)
+    ax.set_xlabel(feature_two)
+    st.write(fig)
+
+
+# INPUTS BELOW
+
+file_path = "./models/stacked_reg.pkl"
 with open(file_path, "rb") as f:
     model = pickle.load(f)
 
 features = [
-    "property_tax_rate",
-    "year_built",
-    "num_of_appliances",
-    "num_of_patio_and_porch_features",
-    "lot_size_sq_ft",
+    "num_of_photos",
     "living_area_sq_ft",
     "avg_school_rating",
+    "num_of_bathrooms",
+    "num_of_bedrooms",
+    "num_of_stories",
+    "age",
+    "airport_distance",
     "home_type_Apartment",
     "home_type_Condo",
     "home_type_Mobile / Manufactured",
@@ -30,94 +129,34 @@ features = [
     "home_type_Vacant Land",
     "city_austin",
     "city_del valle",
-    "city_driftwood",
     "city_manchaca",
     "city_manor",
     "city_pflugerville",
-    "num_of_stories_1",
-    "num_of_stories_2",
-    "num_of_stories_3",
-    "num_of_stories_4",
-    "num_of_bathrooms_1.0",
-    "num_of_bathrooms_1.5",
-    "num_of_bathrooms_1.7",
-    "num_of_bathrooms_1.75",
-    "num_of_bathrooms_2.0",
-    "num_of_bathrooms_2.5",
-    "num_of_bathrooms_2.7",
-    "num_of_bathrooms_2.75",
-    "num_of_bathrooms_3.0",
-    "num_of_bathrooms_3.5",
-    "num_of_bathrooms_4.0",
-    "num_of_bathrooms_4.5",
-    "num_of_bathrooms_5.0",
-    "num_of_bathrooms_6.0",
-    "num_of_bathrooms_7.0",
-    "num_of_bathrooms_8.0",
-    "num_of_bedrooms_1",
-    "num_of_bedrooms_2",
-    "num_of_bedrooms_3",
-    "num_of_bedrooms_4",
-    "num_of_bedrooms_5",
-    "num_of_bedrooms_6",
-    "num_of_bedrooms_7",
-    "num_of_bedrooms_8",
-    "num_of_bedrooms_10",
-    "num_of_security_features_0",
-    "num_of_security_features_1",
-    "num_of_security_features_2",
-    "num_of_security_features_3",
-    "num_of_security_features_4",
-    "num_of_security_features_5",
-    "num_of_security_features_6",
-    "garage_spaces_0",
-    "garage_spaces_1",
-    "garage_spaces_2",
-    "garage_spaces_3",
-    "garage_spaces_4",
-    "garage_spaces_5",
-    "garage_spaces_6",
-    "garage_spaces_7",
-    "garage_spaces_8",
-    "garage_spaces_9",
-    "garage_spaces_10",
-    "garage_spaces_12",
-    "num_of_high_schools_0",
-    "num_of_high_schools_1",
-    "num_of_high_schools_2",
-    "latest_salemonth_1",
-    "latest_salemonth_2",
-    "latest_salemonth_3",
-    "latest_salemonth_4",
-    "latest_salemonth_5",
-    "latest_salemonth_6",
-    "latest_salemonth_7",
-    "latest_salemonth_8",
-    "latest_salemonth_9",
-    "latest_salemonth_10",
-    "latest_salemonth_11",
-    "latest_salemonth_12",
 ]
 
+
 df = pd.DataFrame(
-    np.zeros((1, 86)),
+    np.zeros((1, 23)),
     columns=features,
     dtype="int64",
 )
 
 # User Inputs
 city = st.sidebar.selectbox(
-    "Select Your Home Type",
+    "Select City",
     ("pflugerville", "del valle", "austin", "driftwood", "manor", "manchaca"),
 )
+
+df[f"city_{city}"] = 1
 
 zipcode = st.sidebar.number_input(
     "Enter Zipcode", min_value=73301, max_value=78799, step=1
 )
 
-df["property_tax_rate"] = st.sidebar.number_input("Enter Property Tax Rate")
+geolocator = Nominatim(user_agent="myGeocoder")
+location = geolocator.geocode({"postalcode": zipcode})
 
-num_of_garage_spaces = st.sidebar.slider("Number of garage spaces", max_value=12)
+df["airport_distance"] = downtown_distance(location.raw["lat"], location.raw["lon"])
 
 home_type = st.sidebar.selectbox(
     "Select Your Home Type",
@@ -135,55 +174,47 @@ home_type = st.sidebar.selectbox(
     ),
 )
 
-df["year_built"] = st.sidebar.number_input("Enter Year Built")
+df[f"home_type_{home_type}"] = 1
 
-df["num_of_appliances"] = st.sidebar.number_input(
-    "Enter Number Of Appliances", max_value=11
+df["age"] = datetime.date.today().year - st.sidebar.number_input(
+    "Enter Year Built", min_value=1800
 )
 
-df["num_of_patio_and_porch_features"] = st.sidebar.number_input(
-    "Enter Number Of Patio And Porch"
-)
-
-num_of_sec = st.sidebar.slider("Number of security features", max_value=6)
-
-df["lot_size_sq_ft"] = st.sidebar.number_input("Enter Lot Size Sq Ft")
+df["num_of_photos"] = st.sidebar.number_input("Enter Number Of Appliances", min_value=1)
 
 df["living_area_sq_ft"] = st.sidebar.number_input("Enter Living Area Sq Ft")
 
-num_of_bed = st.sidebar.slider("Number of bedroom", max_value=10, min_value=1)
-
-num_of_bath = st.sidebar.slider(
-    "Number of bathroom", max_value=8.0, min_value=1.0, format="%.1f", step=0.5
+df["num_of_bedrooms"] = st.sidebar.slider(
+    "Number of bedroom", max_value=10, min_value=1
 )
 
-num_of_stories = st.sidebar.slider(
-    "How many stories in your building", max_value=4, min_value=1
+df["num_of_bathrooms"] = st.sidebar.number_input(
+    "Number Of Bathrooms", min_value=0.0, max_value=10.0, step=0.1
+)
+
+df["num_of_stories"] = st.sidebar.slider(
+    "How many stories in your building", max_value=35, min_value=1
 )
 
 df["avg_school_rating"] = st.sidebar.slider(
     "Enter School Rating", max_value=10, min_value=1
 )
 
-num_of_high_schools = st.sidebar.slider(
-    "Number of high schools", max_value=2, min_value=0
+prediction = round(np.exp(model.predict(df)[0]), 2)
+# st.write(f"Your house guesstimated price: ${}")
+
+st.markdown(
+    """
+<style>
+.big-font {
+    font-size:36px !important;
+}
+</style>
+""",
+    unsafe_allow_html=True,
 )
 
-latest_salemonth = st.sidebar.slider("Latest sale month", max_value=12, min_value=1)
-
-features_col = [
-    f"city_{city}",
-    f"home_type_{home_type}",
-    f"num_of_stories_{num_of_stories}",
-    f"num_of_bathrooms_{num_of_bath}",
-    f"num_of_bedrooms_{num_of_bed}",
-    f"num_of_security_features_{num_of_sec}",
-    f"garage_spaces_{num_of_garage_spaces}",
-    f"num_of_high_schools_{num_of_high_schools}",
-    f"latest_salemonth_{latest_salemonth}",
-]
-
-for col in features_col:
-    df[col] = 1
-
-st.write(f"Your house guesstimated price: ${round(np.exp(model.predict(df)[0]), 2)}")
+st.markdown(
+    f'<p class="big-font">Your house guesstimated price: ${prediction}</p>',
+    unsafe_allow_html=True,
+)
